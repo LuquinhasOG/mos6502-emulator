@@ -47,7 +47,7 @@ public:
 
     void reset() {
         PC = 0xFFFC;
-        SP = 0x00;
+        SP = 0xFF;
         A = X = Y = 0;
         C = Z = I = D = B = O = N = 0;
         mem.reset();
@@ -79,11 +79,10 @@ public:
     }
 
     Word readWord(int& cycles, Word address) {
-        Byte low = readByte(cycles, address);
-        Byte high = readByte(cycles, address+1);
-        Word sum = ((high << 8) | low);
+        Word w = readByte(cycles, address);
+        w |= (readByte(cycles, address + 1) << 8);
 
-        return sum;
+        return w;
     }
 
     void writeWord(int& cycles, Word w, Word address) {

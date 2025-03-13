@@ -25,7 +25,7 @@ int main() {
     mem[0x001B] = 0x03;
     mem[0x0320] = 0x30;
     cout << "installed program" << endl;
-    cpu.execute(20);
+    cpu.execute(21);
     cout << "end of program" << endl << endl;
 
     cout << "registers: " << endl << (int) cpu.getA() << endl << (int) cpu.getX() << endl << (int) cpu.getY() << endl;

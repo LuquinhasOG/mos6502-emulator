@@ -14,8 +14,8 @@ constexpr Word
 // jump to subroutine
 void CPU::jumpSubRoutine(int& cycles) {
     Word address = fetchWord(cycles);
-    writeWord(cycles, PC, (PAGE_ONE | SP));
-    SP += 2;
+    SP -= 2;
+    writeWord(cycles, PC, (PAGE_ONE | SP + 1));
     PC = address;
     cycles--;
 }
@@ -63,8 +63,7 @@ void CPU::loadAAbsoluteY(int& cycles) {
 }
 
 void CPU::loadAIndexedIndirect(int& cycles) {
-    Byte test = (0x00FF & (fetchByte(cycles) + X));
-    Word address = readWord(cycles, test);
+    Word address = readWord(cycles, (0x00FF & (fetchByte(cycles) + X)));
     A = readByte(cycles, address);
     cycles--;
     setLoadFlags(A);
@@ -88,10 +87,10 @@ void CPU::loadXAbsolute(int& cycles) {
 
 // return from subroutine
 void CPU::returnFromSubRoutine(int& cycles) {
-    Word rtn_address = readWord(cycles, (PAGE_ONE | SP - 2));
-    SP--;
+    Word rtn_address = readWord(cycles, (PAGE_ONE | SP + 1));
+    SP++;
     mem[PAGE_ONE | SP] = 0x00;
-    SP--;
+    SP++;
     mem[PAGE_ONE | SP] = 0x00;
     PC = rtn_address;
     cycles -= 3;
