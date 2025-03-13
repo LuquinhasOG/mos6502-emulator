@@ -3,7 +3,6 @@
 
 using Byte = unsigned char;
 using Word = unsigned short;
-using u32 = unsigned int;
 
 constexpr int MEM_SIZE = 65536;
 
@@ -13,7 +12,7 @@ private:
 
 public:
     void reset() {
-        for (u32 i = 0; i < MEM_SIZE; i++) {
+        for (int i = 0; i < MEM_SIZE; i++) {
             data[i] = 0;
         }
     }

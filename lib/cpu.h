@@ -8,7 +8,13 @@ constexpr Byte
     LDA_I = 0xA9,
     LDA_ZP = 0xA5,
     LDA_ZPX = 0xB5,
-    LDA_A = 0x6D,
+    LDA_ABS = 0x6D,
+    LDA_ABSX = 0xBD,
+    LDA_INDX = 0xA1,
+    LDA_INDY = 0xB1,
+    LDX_I = 0xA2,
+    LDX_ZP = 0xA6,
+    LDX_ABS = 0xAE,
     RTS = 0x60;
 
 class CPU {
@@ -20,12 +26,17 @@ private:
     // processor status register
     bool C, Z, I, D, B, O, N;
 
-    std::unordered_map<Byte, std::function<void(u32&)>> instructions = {
+    std::unordered_map<Byte, std::function<void(int&)>> instructions = {
         {JSR, inst_ref(jumpSubRoutine)},
         {LDA_I, inst_ref(loadAImmediate)},
         {LDA_ZP, inst_ref(loadAZeroPage)},
         {LDA_ZPX, inst_ref(loadAZeroPageX)},
-        {LDA_A, inst_ref(loadAAbsolute)},
+        {LDA_ABS, inst_ref(loadAAbsolute)},
+        {LDA_ABSX, inst_ref(loadAAbsoluteX)},
+        {LDA_INDX, inst_ref(loadAIndexedIndirect)},
+        {LDX_I, inst_ref(loadXImmediate)},
+        {LDX_ZP, inst_ref(loadXZeroPage)},
+        {LDX_ABS, inst_ref(loadXAbsolute)},
         {RTS, inst_ref(returnFromSubRoutine)},
     };
 
@@ -38,11 +49,11 @@ public:
         PC = 0xFFFC;
         SP = 0x00;
         A = X = Y = 0;
-        clearFlags();
+        C = Z = I = D = B = O = N = 0;
         mem.reset();
     }
 
-    Byte fetchByte(u32& cycles) {
+    Byte fetchByte(int& cycles) {
         Byte b = mem[PC];
         PC++;
         cycles--;
@@ -50,7 +61,7 @@ public:
         return b;
     }
 
-    Word fetchWord(u32& cycles) {
+    Word fetchWord(int& cycles) {
         Word w = mem[PC];
         PC++;
         w |= (mem[PC] << 8);
@@ -60,35 +71,33 @@ public:
         return w;
     }
 
-    Byte readByte(u32& cycles, Word address) {
+    Byte readByte(int& cycles, Word address) {
         Byte b = mem[address];
         cycles--;
+
         return b;
     }
 
-    Byte readWord(u32& cycles, Word address) {
-        Word w = mem[address] | (mem[address + 1] << 8);
-        cycles -= 2;
+    Word readWord(int& cycles, Word address) {
+        Byte low = readByte(cycles, address);
+        Byte high = readByte(cycles, address+1);
+        Word sum = ((high << 8) | low);
 
-        return w;
+        return sum;
     }
 
-    void writeWord(u32& cycles, Word w, Word address) {
+    void writeWord(int& cycles, Word w, Word address) {
         mem[address] = w & 0x00FF; // mask convert word to byte
         mem[address + 1] = (w >> 8);
         cycles -= 2;
     }
 
-    void clearFlags() {
-        C = Z = I = D = B = O = N = 0;
+    void setLoadFlags(Byte reg) {
+        Z = (reg == 0);
+        N = ((reg & 0x80) == 0x80);
     }
 
-    void setLoadFlags() {
-        Z = (A == 0);
-        N = ((A & 0x80) == 0x80);
-    }
-
-    void execute(u32 cycles) {
+    void execute(int cycles) {
         while (cycles > 0) {
             Byte opcode = fetchByte(cycles);
             if (instructions.count(opcode))
@@ -96,16 +105,29 @@ public:
         }
     }
 
-    void jumpSubRoutine(u32& cycles);
-    void loadAImmediate(u32& cycles);
-    void loadAZeroPage(u32& cycles);
-    void loadAZeroPageX(u32& cycles);
-    void loadAAbsolute(u32& cycles);
-    void returnFromSubRoutine(u32& cycles);
+    // jump to subroutine
+    void jumpSubRoutine(int& cycles);
 
-    Byte getA() {
-        return A;
-    }
+    // load A
+    void loadAImmediate(int& cycles);
+    void loadAZeroPage(int& cycles);
+    void loadAZeroPageX(int& cycles);
+    void loadAAbsolute(int& cycles);
+    void loadAAbsoluteX(int& cycles);
+    void loadAAbsoluteY(int& cycles);
+    void loadAIndexedIndirect(int& cycles);
+
+    // load X
+    void loadXImmediate(int& cycles);
+    void loadXZeroPage(int& cycles);
+    void loadXAbsolute(int& cycles);
+
+    // return from subroutine
+    void returnFromSubRoutine(int& cycles);
+
+    Byte getA() { return A; }
+    Byte getX() { return X; }
+    Byte getY() { return Y; }
 };
 
 #endif
