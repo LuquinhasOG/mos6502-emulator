@@ -34,6 +34,7 @@ private:
         {LDA_ABS, inst_ref(loadAAbsolute)},
         {LDA_ABSX, inst_ref(loadAAbsoluteX)},
         {LDA_INDX, inst_ref(loadAIndexedIndirect)},
+        {LDA_INDY, inst_ref(loadAIndirectIndexed)},
         {LDX_I, inst_ref(loadXImmediate)},
         {LDX_ZP, inst_ref(loadXZeroPage)},
         {LDX_ABS, inst_ref(loadXAbsolute)},
@@ -115,6 +116,7 @@ public:
     void loadAAbsoluteX(int& cycles);
     void loadAAbsoluteY(int& cycles);
     void loadAIndexedIndirect(int& cycles);
+    void loadAIndirectIndexed(int& cycles);
 
     // load X
     void loadXImmediate(int& cycles);

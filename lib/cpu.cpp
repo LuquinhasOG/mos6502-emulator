@@ -1,6 +1,5 @@
 #include <functional>
 #include <unordered_map>
-#include <iostream>
 #include "memory.h"
 #include "cpu.h"
 
@@ -67,6 +66,19 @@ void CPU::loadAIndexedIndirect(int& cycles) {
     A = readByte(cycles, address);
     cycles--;
     setLoadFlags(A);
+}
+
+void CPU::loadAIndirectIndexed(int& cycles) {
+    Byte zp_address = fetchByte(cycles);
+    Word low = readByte(cycles, zp_address) + Y;
+    Byte carry = (0xFF00 & low) >> 8;
+    Byte high = readByte(cycles, zp_address+1) + carry;
+    Word effective_address = (0x00FF & low) | (high << 8);
+    A = readByte(cycles, effective_address);
+    setLoadFlags(A);
+
+    if (carry)
+        cycles--;
 }
 
 // load to X register
