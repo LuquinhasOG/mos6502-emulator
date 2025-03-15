@@ -1,8 +1,9 @@
 #ifndef CPU_H
 #define CPU_H
 
-#define inst_ref(func) std::bind(&func, this, std::placeholders::_1)
+#define bnd(func) std::bind(&func, this)
 
+// instructions
 constexpr Byte
     JSR = 0x20,
     LDA_I = 0xA9,
@@ -24,86 +25,90 @@ constexpr Byte
     LDY_ABSX = 0xBC,
     RTS = 0x60;
 
+// illegal instructions (for debug)
+constexpr Byte
+    JAM = 0x02; // kill the cpu execution
+
 class CPU {
 private:
     // registers
     Word PC;
     Byte SP, A, X, Y;
 
-    // processor status register
-    bool C, Z, I, D, B, O, N;
+    // processor status register (K is the kill flag, debug feature)
+    bool C, Z, I, D, B, O, N, K;
 
-    std::unordered_map<Byte, std::function<void(int&)>> instructions = {
-        {JSR, inst_ref(jumpSubRoutine)},
-        {LDA_I, inst_ref(loadAImmediate)},
-        {LDA_ZP, inst_ref(loadAZeroPage)},
-        {LDA_ZPX, inst_ref(loadAZeroPageX)},
-        {LDA_ABS, inst_ref(loadAAbsolute)},
-        {LDA_ABSX, inst_ref(loadAAbsoluteX)},
-        {LDA_INDX, inst_ref(loadAIndexedIndirect)},
-        {LDA_INDY, inst_ref(loadAIndirectIndexed)},
-        {LDX_I, inst_ref(loadXImmediate)},
-        {LDX_ZP, inst_ref(loadXZeroPage)},
-        {LDX_ZPY, inst_ref(loadXZeroPageY)},
-        {LDX_ABS, inst_ref(loadXAbsolute)},
-        {LDX_ABSY, inst_ref(loadXAbsoluteY)},
-        {LDY_I, inst_ref(loadYImmediate)},
-        {LDY_ZP, inst_ref(loadYZeroPage)},
-        {LDY_ZPX, inst_ref(loadYZeroPageX)},
-        {LDY_ABS, inst_ref(loadYAbsolute)},
-        {LDY_ABSX, inst_ref(loadYAbsoluteX)},
-        {RTS, inst_ref(returnFromSubRoutine)},
+    std::unordered_map<Byte, std::function<void(void)>> instructions = {
+        {JSR, bnd(jumpSubRoutine)},
+        {LDA_I, bnd(loadAImmediate)},
+        {LDA_ZP, bnd(loadAZeroPage)},
+        {LDA_ZPX, bnd(loadAZeroPageX)},
+        {LDA_ABS, bnd(loadAAbsolute)},
+        {LDA_ABSX, bnd(loadAAbsoluteX)},
+        {LDA_INDX, bnd(loadAIndexedIndirect)},
+        {LDA_INDY, bnd(loadAIndirectIndexed)},
+        {LDX_I, bnd(loadXImmediate)},
+        {LDX_ZP, bnd(loadXZeroPage)},
+        {LDX_ZPY, bnd(loadXZeroPageY)},
+        {LDX_ABS, bnd(loadXAbsolute)},
+        {LDX_ABSY, bnd(loadXAbsoluteY)},
+        {LDY_I, bnd(loadYImmediate)},
+        {LDY_ZP, bnd(loadYZeroPage)},
+        {LDY_ZPX, bnd(loadYZeroPageX)},
+        {LDY_ABS, bnd(loadYAbsolute)},
+        {LDY_ABSX, bnd(loadYAbsoluteX)},
+        {RTS, bnd(returnFromSubRoutine)},
+        // illegal instructions
+        {JAM, bnd(kill)},
     };
 
     Memory& mem;
+    unsigned long cycles; // count cycles in CPU
 
 public:
     CPU(Memory& memory): mem(memory) {}
 
     void reset() {
+        cycles = 0;
         PC = 0xFFFC;
         SP = 0xFF;
         A = X = Y = 0;
-        C = Z = I = D = B = O = N = 0;
+        C = Z = I = D = B = O = N = K = 0;
         mem.reset();
     }
 
-    Byte fetchByte(int& cycles) {
+    Byte fetchByte() {
         Byte b = mem[PC];
         PC++;
-        cycles--;
 
         return b;
     }
 
-    Word fetchWord(int& cycles) {
+    Word fetchWord() {
         Word w = mem[PC];
         PC++;
         w |= (mem[PC] << 8);
         PC++;
-        cycles -= 2;
 
         return w;
     }
 
-    Byte readByte(int& cycles, Word address) {
+    Byte readByte(Word address) {
         Byte b = mem[address];
-        cycles--;
 
         return b;
     }
 
-    Word readWord(int& cycles, Word address) {
-        Word w = readByte(cycles, address);
-        w |= (readByte(cycles, address + 1) << 8);
+    Word readWord(Word address) {
+        Word w = readByte(address);
+        w |= (readByte(address + 1) << 8);
 
         return w;
     }
 
-    void writeWord(int& cycles, Word w, Word address) {
+    void writeWord(Word w, Word address) {
         mem[address] = w & 0x00FF; // mask convert word to byte
         mem[address + 1] = (w >> 8);
-        cycles -= 2;
     }
 
     void setLoadFlags(Byte reg) {
@@ -111,47 +116,51 @@ public:
         N = ((reg & 0x80) == 0x80);
     }
 
-    void execute(int cycles) {
-        while (cycles > 0) {
-            Byte opcode = fetchByte(cycles);
+    void execute() {
+        while (!K) {
+            Byte opcode = fetchByte();
+            cycles++;
             if (instructions.count(opcode))
-                instructions[opcode](cycles);
+                instructions[opcode]();
         }
     }
 
     // jump to subroutine
-    void jumpSubRoutine(int& cycles);
+    void jumpSubRoutine();
 
     // load A
-    void loadAImmediate(int& cycles);
-    void loadAZeroPage(int& cycles);
-    void loadAZeroPageX(int& cycles);
-    void loadAAbsolute(int& cycles);
-    void loadAAbsoluteX(int& cycles);
-    void loadAAbsoluteY(int& cycles);
-    void loadAIndexedIndirect(int& cycles);
-    void loadAIndirectIndexed(int& cycles);
+    void loadAImmediate();
+    void loadAZeroPage();
+    void loadAZeroPageX();
+    void loadAAbsolute();
+    void loadAAbsoluteX();
+    void loadAAbsoluteY();
+    void loadAIndexedIndirect();
+    void loadAIndirectIndexed();
 
     // load X
-    void loadXImmediate(int& cycles);
-    void loadXZeroPage(int& cycles);
-    void loadXZeroPageY(int& cycles);
-    void loadXAbsolute(int& cycles);
-    void loadXAbsoluteY(int& cycles);
+    void loadXImmediate();
+    void loadXZeroPage();
+    void loadXZeroPageY();
+    void loadXAbsolute();
+    void loadXAbsoluteY();
 
     // load Y
-    void loadYImmediate(int& cycles);
-    void loadYZeroPage(int& cycles);
-    void loadYZeroPageX(int& cycles);
-    void loadYAbsolute(int& cycles);
-    void loadYAbsoluteX(int& cycles);
+    void loadYImmediate();
+    void loadYZeroPage();
+    void loadYZeroPageX();
+    void loadYAbsolute();
+    void loadYAbsoluteX();
 
     // return from subroutine
-    void returnFromSubRoutine(int& cycles);
+    void returnFromSubRoutine();
+
+    void kill();
 
     Byte getA() { return A; }
     Byte getX() { return X; }
     Byte getY() { return Y; }
+    unsigned long getCycles() { return cycles; }
 };
 
 #endif
