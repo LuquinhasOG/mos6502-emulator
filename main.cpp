@@ -16,14 +16,15 @@ int main() {
     mem[0xFFFC] = JSR;
     mem[0xFFFD] = 0x00;
     mem[0xFFFE] = 0x02;
-    mem[0x0200] = LDA_INDY;
-    mem[0x0201] = 0x00;
-    mem[0x0202] = RTS;
-    mem[0x0000] = 0x0A;
-    mem[0x0001] = 0x10;
-    mem[0x100A] = 0x28;
+    mem[0x0200] = LDY_I;
+    mem[0x0201] = 0x1F;
+    mem[0x0202] = LDX_ZPY;
+    mem[0x0203] = 0x2F;
+    mem[0x0204] = RTS;
+    mem[0x004E] = 0xA3;
+
     cout << "installed program" << endl;
-    cpu.execute(17);
+    cpu.execute(25);
     cout << "end of program" << endl << endl;
 
     cout << "registers: " << endl

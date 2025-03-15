@@ -14,7 +14,14 @@ constexpr Byte
     LDA_INDY = 0xB1,
     LDX_I = 0xA2,
     LDX_ZP = 0xA6,
+    LDX_ZPY = 0xB6,
     LDX_ABS = 0xAE,
+    LDX_ABSY = 0xBE,
+    LDY_I = 0xA0,
+    LDY_ZP = 0xA4,
+    LDY_ZPX = 0xB4,
+    LDY_ABS = 0xAC,
+    LDY_ABSX = 0xBC,
     RTS = 0x60;
 
 class CPU {
@@ -37,7 +44,14 @@ private:
         {LDA_INDY, inst_ref(loadAIndirectIndexed)},
         {LDX_I, inst_ref(loadXImmediate)},
         {LDX_ZP, inst_ref(loadXZeroPage)},
+        {LDX_ZPY, inst_ref(loadXZeroPageY)},
         {LDX_ABS, inst_ref(loadXAbsolute)},
+        {LDX_ABSY, inst_ref(loadXAbsoluteY)},
+        {LDY_I, inst_ref(loadYImmediate)},
+        {LDY_ZP, inst_ref(loadYZeroPage)},
+        {LDY_ZPX, inst_ref(loadYZeroPageX)},
+        {LDY_ABS, inst_ref(loadYAbsolute)},
+        {LDY_ABSX, inst_ref(loadYAbsoluteX)},
         {RTS, inst_ref(returnFromSubRoutine)},
     };
 
@@ -121,7 +135,16 @@ public:
     // load X
     void loadXImmediate(int& cycles);
     void loadXZeroPage(int& cycles);
+    void loadXZeroPageY(int& cycles);
     void loadXAbsolute(int& cycles);
+    void loadXAbsoluteY(int& cycles);
+
+    // load Y
+    void loadYImmediate(int& cycles);
+    void loadYZeroPage(int& cycles);
+    void loadYZeroPageX(int& cycles);
+    void loadYAbsolute(int& cycles);
+    void loadYAbsoluteX(int& cycles);
 
     // return from subroutine
     void returnFromSubRoutine(int& cycles);

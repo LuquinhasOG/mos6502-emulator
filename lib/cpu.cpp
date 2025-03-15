@@ -31,8 +31,7 @@ void CPU::loadAZeroPage(int& cycles) {
 }
 
 void CPU::loadAZeroPageX(int& cycles) {
-    Byte zp_address = PAGE_ZERO | fetchByte(cycles);
-    zp_address += X;
+    Byte zp_address = (PAGE_ZERO | fetchByte(cycles)) + X;
     cycles--;
     A = readByte(cycles, zp_address);
     setLoadFlags(A);
@@ -92,9 +91,57 @@ void CPU::loadXZeroPage(int& cycles) {
     setLoadFlags(X);
 }
 
+void CPU::loadXZeroPageY(int& cycles) {
+    Byte zp_address = (PAGE_ZERO | fetchByte(cycles)) + Y;
+    cycles--;
+    X = readByte(cycles, zp_address);
+    setLoadFlags(X);
+}
+
 void CPU::loadXAbsolute(int& cycles) {
     X = readByte(cycles, fetchWord(cycles));
     setLoadFlags(X);
+}
+
+void CPU::loadXAbsoluteY(int& cycles) {
+    Word address = fetchWord(cycles);
+    X = readByte(cycles, (address + Y));
+    setLoadFlags(X);
+
+    if ((address & 0xFF00) != (address+Y & 0xFF00))
+        cycles--;
+}
+
+// load to Y register
+void CPU::loadYImmediate(int& cycles) {
+    Y = fetchByte(cycles);
+    setLoadFlags(Y);
+}
+
+void CPU::loadYZeroPage(int& cycles) {
+    Y = readByte(cycles, (PAGE_ZERO | fetchByte(cycles)));
+    setLoadFlags(Y);
+}
+
+void CPU::loadYZeroPageX(int& cycles) {
+    Byte zp_address = (PAGE_ZERO | fetchByte(cycles)) + X;
+    cycles--;
+    Y = readByte(cycles, zp_address);
+    setLoadFlags(Y);
+}
+
+void CPU::loadYAbsolute(int& cycles) {
+    Y = readByte(cycles, fetchWord(cycles));
+    setLoadFlags(Y);
+}
+
+void CPU::loadYAbsoluteX(int& cycles) {
+    Word address = fetchWord(cycles);
+    Y = readByte(cycles, (address + X));
+    setLoadFlags(Y);
+
+    if ((address & 0xFF00) != (address+X & 0xFF00))
+        cycles--;
 }
 
 // return from subroutine
