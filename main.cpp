@@ -18,11 +18,12 @@ int main() {
     mem[0xFFFE] = 0x02;
     mem[0xFFFF] = JAM;
     mem[0x0200] = LDY_I;
-    mem[0x0201] = 0x1F;
-    mem[0x0202] = LDX_ZPY;
-    mem[0x0203] = 0x2F;
-    mem[0x0204] = RTS;
-    mem[0x004E] = 0xA3;
+    mem[0x0201] = 0x10;
+    mem[0x0202] = LDX_ABSY;
+    mem[0x0203] = 0x89;
+    mem[0x0204] = 0xAE;
+    mem[0x0205] = RTS;
+    mem[0xAE99] = 0x48;
 
     cout << "installed program" << endl;
     cpu.execute();

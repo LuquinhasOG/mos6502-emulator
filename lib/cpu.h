@@ -3,6 +3,11 @@
 
 #define bnd(func) std::bind(&func, this)
 
+constexpr Word
+    PAGE_ZERO = 0x0000,
+    PAGE_ONE = 0x0100,
+    STACK_BOTTOM = 0x01FF;
+
 // instructions
 constexpr Byte
     JSR = 0x20,
@@ -11,6 +16,7 @@ constexpr Byte
     LDA_ZPX = 0xB5,
     LDA_ABS = 0x6D,
     LDA_ABSX = 0xBD,
+    LDA_ABSY = 0xB9,
     LDA_INDX = 0xA1,
     LDA_INDY = 0xB1,
     LDX_I = 0xA2,
@@ -45,6 +51,7 @@ private:
         {LDA_ZPX, bnd(loadAZeroPageX)},
         {LDA_ABS, bnd(loadAAbsolute)},
         {LDA_ABSX, bnd(loadAAbsoluteX)},
+        {LDA_ABSY, bnd(loadAAbsoluteY)},
         {LDA_INDX, bnd(loadAIndexedIndirect)},
         {LDA_INDY, bnd(loadAIndirectIndexed)},
         {LDX_I, bnd(loadXImmediate)},
@@ -93,17 +100,19 @@ public:
         return w;
     }
 
-    Byte readByte(Word address) {
-        Byte b = mem[address];
+    Byte readByteZeroPage(Byte reg = 0) {
+        return mem[(PAGE_ZERO | fetchByte()) + reg];
+    }
 
-        return b;
+    Byte readByteAbsolute(Byte reg = 0) {
+        Word address = fetchWord() + reg;
+        if ((address & 0xFF00) != (address+X & 0xFF00))
+            cycles++;
+        return mem[address];
     }
 
     Word readWord(Word address) {
-        Word w = readByte(address);
-        w |= (readByte(address + 1) << 8);
-
-        return w;
+        return mem[address] | (mem[address + 1] << 8);;
     }
 
     void writeWord(Word w, Word address) {

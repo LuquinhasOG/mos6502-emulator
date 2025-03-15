@@ -1,12 +1,8 @@
+#include <iostream>
 #include <functional>
 #include <unordered_map>
 #include "memory.h"
 #include "cpu.h"
-
-constexpr Word
-    PAGE_ZERO = 0x0000,
-    PAGE_ONE = 0x0100,
-    STACK_BOTTOM = 0x01FF;
 
 // implementation instruction functions
 
@@ -27,58 +23,47 @@ void CPU::loadAImmediate() {
 }
 
 void CPU::loadAZeroPage() {
-    A = readByte(PAGE_ZERO | fetchByte());
+    A = readByteZeroPage();
     setLoadFlags(A);
     cycles += 2;
 }
 
 void CPU::loadAZeroPageX() {
-    Byte zp_address = (PAGE_ZERO | fetchByte()) + X;
-    A = readByte(zp_address);
+    A = readByteZeroPage(X);
     setLoadFlags(A);
     cycles += 3;
 }
 
 void CPU::loadAAbsolute() {
-    A = readByte(fetchWord());
+    A = readByteAbsolute();
     setLoadFlags(A);
     cycles += 3;
 }
 
 void CPU::loadAAbsoluteX() {
-    Word address = fetchWord();
-    A = readByte(address + X);
+    A = readByteAbsolute(X);
     setLoadFlags(A);
-
     cycles += 3;
-    if ((address & 0xFF00) != (address+X & 0xFF00))
-        cycles++;
 }
 
 void CPU::loadAAbsoluteY() {
-    Word address = fetchWord();
-    A = readByte(address + Y);
+    A = readByteAbsolute(Y);
     setLoadFlags(A);
-
     cycles += 3;
-    if ((address & 0xFF00) != (address+Y & 0xFF00))
-        cycles++;
 }
 
 void CPU::loadAIndexedIndirect() {
-    Word address = readWord(0x00FF & (fetchByte() + X));
-    A = readByte(address);
+    A = mem[readWord(0x00FF & (fetchByte() + X))];
     setLoadFlags(A);
     cycles += 5;
 }
 
 void CPU::loadAIndirectIndexed() {
     Byte zp_address = fetchByte();
-    Word low = readByte(zp_address) + Y;
+    Word low = mem[zp_address] + Y;
     Byte carry = (0xFF00 & low) >> 8;
-    Byte high = readByte(zp_address+1) + carry;
-    Word effective_address = (0x00FF & low) | (high << 8);
-    A = readByte(effective_address);
+    Word effective_address = (0x00FF & low) | ((mem[zp_address+1] + carry) << 8);
+    A = mem[effective_address];
     setLoadFlags(A);
 
     cycles += 4;
@@ -94,32 +79,27 @@ void CPU::loadXImmediate() {
 }
 
 void CPU::loadXZeroPage() {
-    X = readByte(PAGE_ZERO | fetchByte());
+    X = readByteZeroPage();
     setLoadFlags(X);
     cycles += 2;
 }
 
 void CPU::loadXZeroPageY() {
-    Byte zp_address = (PAGE_ZERO | fetchByte()) + Y;
-    X = readByte(zp_address);
+    X = readByteZeroPage(Y);
     setLoadFlags(X);
     cycles += 3;
 }
 
 void CPU::loadXAbsolute() {
-    X = readByte(fetchWord());
+    X = readByteAbsolute();
     setLoadFlags(X);
     cycles += 3;
 }
 
 void CPU::loadXAbsoluteY() {
-    Word address = fetchWord();
-    X = readByte(address + Y);
+    X = readByteAbsolute(Y);
     setLoadFlags(X);
-
     cycles += 3;
-    if ((address & 0xFF00) != (address+Y & 0xFF00))
-        cycles++;
 }
 
 // load to Y register
@@ -130,32 +110,27 @@ void CPU::loadYImmediate() {
 }
 
 void CPU::loadYZeroPage() {
-    Y = readByte(PAGE_ZERO | fetchByte());
+    Y = readByteZeroPage();
     setLoadFlags(Y);
     cycles += 2;
 }
 
 void CPU::loadYZeroPageX() {
-    Byte zp_address = (PAGE_ZERO | fetchByte()) + X;
-    Y = readByte(zp_address);
+    Y = readByteZeroPage(X);
     setLoadFlags(Y);
     cycles += 3;
 }
 
 void CPU::loadYAbsolute() {
-    Y = readByte(fetchWord());
+    Y = readByteAbsolute();
     setLoadFlags(Y);
     cycles += 3;
 }
 
 void CPU::loadYAbsoluteX() {
-    Word address = fetchWord();
-    Y = readByte(address + X);
+    Y = readByteAbsolute(X);
     setLoadFlags(Y);
-
     cycles += 3;
-    if ((address & 0xFF00) != (address+X & 0xFF00))
-        cycles++;
 }
 
 // return from subroutine
