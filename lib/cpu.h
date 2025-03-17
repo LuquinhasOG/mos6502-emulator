@@ -29,6 +29,9 @@ constexpr Byte
     LDY_ZPX = 0xB4,
     LDY_ABS = 0xAC,
     LDY_ABSX = 0xBC,
+    STX_ZP = 0x86,
+    STX_ZPY = 0x96,
+    STX_ABS = 0x8E,
     RTS = 0x60;
 
 // illegal instructions (for debug)
@@ -64,6 +67,9 @@ private:
         {LDY_ZPX, bnd(loadYZeroPageX)},
         {LDY_ABS, bnd(loadYAbsolute)},
         {LDY_ABSX, bnd(loadYAbsoluteX)},
+        {STX_ZP, bnd(storeXZeroPage)},
+        {STX_ZPY, bnd(storeXZeroPageY)},
+        {STX_ABS, bnd(storeXAbsolute)},
         {RTS, bnd(returnFromSubRoutine)},
         // illegal instructions
         {JAM, bnd(kill)},
@@ -160,6 +166,11 @@ public:
     void loadYZeroPageX();
     void loadYAbsolute();
     void loadYAbsoluteX();
+
+    // store X
+    void storeXZeroPage();
+    void storeXZeroPageY();
+    void storeXAbsolute();
 
     // return from subroutine
     void returnFromSubRoutine();

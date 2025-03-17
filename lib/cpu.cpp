@@ -1,4 +1,3 @@
-#include <iostream>
 #include <functional>
 #include <unordered_map>
 #include "memory.h"
@@ -132,6 +131,22 @@ void CPU::loadYAbsoluteX() {
     setLoadFlags(Y);
     cycles += 3;
 }
+
+// store X
+    void CPU::storeXZeroPage() {
+        mem[fetchByte()] = X;
+        cycles += 2;
+    }
+
+    void CPU::storeXZeroPageY() {
+        mem[0x00FF & (fetchByte() + Y)] = X;
+        cycles += 3;
+    }
+
+    void CPU::storeXAbsolute() {
+        mem[fetchWord()] = X;
+        cycles += 3;
+    }
 
 // return from subroutine
 void CPU::returnFromSubRoutine() {
