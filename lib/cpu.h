@@ -32,6 +32,9 @@ constexpr Byte
     STX_ZP = 0x86,
     STX_ZPY = 0x96,
     STX_ABS = 0x8E,
+    STY_ZP = 0x84,
+    STY_ZPX = 0x94,
+    STY_ABS = 0x8C,
     RTS = 0x60;
 
 // illegal instructions (for debug)
@@ -70,6 +73,9 @@ private:
         {STX_ZP, bnd(storeXZeroPage)},
         {STX_ZPY, bnd(storeXZeroPageY)},
         {STX_ABS, bnd(storeXAbsolute)},
+        {STY_ZP, bnd(storeYZeroPage)},
+        {STY_ZPX, bnd(storeYZeroPageX)},
+        {STY_ABS, bnd(storeYAbsolute)},
         {RTS, bnd(returnFromSubRoutine)},
         // illegal instructions
         {JAM, bnd(kill)},
@@ -171,6 +177,11 @@ public:
     void storeXZeroPage();
     void storeXZeroPageY();
     void storeXAbsolute();
+
+    // store Y
+    void storeYZeroPage();
+    void storeYZeroPageX();
+    void storeYAbsolute();
 
     // return from subroutine
     void returnFromSubRoutine();

@@ -11,7 +11,6 @@
 (JAM instruction to kill the CPU execution)
 
 ## to do
-* Generalize addressing modes
 * Store registers instructions
 * Register transfers intructions
 * Logic and arithmetic operations

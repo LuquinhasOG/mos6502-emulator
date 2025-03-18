@@ -133,20 +133,37 @@ void CPU::loadYAbsoluteX() {
 }
 
 // store X
-    void CPU::storeXZeroPage() {
-        mem[fetchByte()] = X;
-        cycles += 2;
-    }
+void CPU::storeXZeroPage() {
+    mem[fetchByte()] = X;
+    cycles += 2;
+}
 
-    void CPU::storeXZeroPageY() {
-        mem[0x00FF & (fetchByte() + Y)] = X;
-        cycles += 3;
-    }
+void CPU::storeXZeroPageY() {
+    mem[0x00FF & (fetchByte() + Y)] = X;
+    cycles += 3;
+}
 
-    void CPU::storeXAbsolute() {
-        mem[fetchWord()] = X;
-        cycles += 3;
-    }
+void CPU::storeXAbsolute() {
+    mem[fetchWord()] = Y;
+    cycles += 3;
+}
+
+// store Y
+
+void CPU::storeYZeroPage() {
+    mem[fetchByte()] = Y;
+    cycles += 2;
+}
+
+void CPU::storeYZeroPageX() {
+    mem[0x00FF & (fetchByte() + X)] = Y;
+    cycles += 3;
+}
+
+void CPU::storeYAbsolute() {
+    mem[fetchWord()] = Y;
+    cycles += 3;
+}
 
 // return from subroutine
 void CPU::returnFromSubRoutine() {
