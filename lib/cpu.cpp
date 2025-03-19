@@ -132,6 +132,46 @@ void CPU::loadYAbsoluteX() {
     cycles += 3;
 }
 
+// store A
+void CPU::storeAZeroPage() {
+    mem[fetchByte()] = A;
+    cycles += 2;
+}
+
+void CPU::storeAZeroPageX() {
+    mem[0x00FF & (fetchByte() + X)] = A;
+    cycles += 3;
+}
+
+void CPU::storeAAbsolute() {
+    mem[fetchWord()] = A;
+    cycles += 3;
+}
+
+void CPU::storeAAbsoluteX() {
+    mem[fetchWord() + X] = A;
+    cycles += 4;
+}
+
+void CPU::storeAAbsoluteY() {
+    mem[fetchWord() + Y] = A;
+    cycles += 4;
+}
+
+void CPU::storeAIndexedIndirect() {
+    mem[readWord(0x00FF & (fetchByte() + X))] = A;
+    cycles += 5;
+}
+
+void CPU::storeAIndirectIndexed() {
+    Byte zp_address = fetchByte();
+    Word low = mem[zp_address] + Y;
+    Byte carry = (0xFF00 & low) >> 8;
+    Word effective_address = (0x00FF & low) | ((mem[zp_address+1] + carry) << 8);
+    mem[effective_address] = A;
+    cycles += 5;
+}
+
 // store X
 void CPU::storeXZeroPage() {
     mem[fetchByte()] = X;

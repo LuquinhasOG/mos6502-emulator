@@ -29,6 +29,13 @@ constexpr Byte
     LDY_ZPX = 0xB4,
     LDY_ABS = 0xAC,
     LDY_ABSX = 0xBC,
+    STA_ZP = 0x85,
+    STA_ZPX = 0x95,
+    STA_ABS = 0x8D,
+    STA_ABSX = 0x9D,
+    STA_ABSY = 0x99,
+    STA_INDX = 0x81,
+    STA_INDY = 0x91,
     STX_ZP = 0x86,
     STX_ZPY = 0x96,
     STX_ABS = 0x8E,
@@ -70,6 +77,13 @@ private:
         {LDY_ZPX, bnd(loadYZeroPageX)},
         {LDY_ABS, bnd(loadYAbsolute)},
         {LDY_ABSX, bnd(loadYAbsoluteX)},
+        {STA_ZP, bnd(storeAZeroPage)},
+        {STA_ZPX, bnd(storeAZeroPageX)},
+        {STA_ABS, bnd(storeAAbsolute)},
+        {STA_ABSX, bnd(storeAAbsoluteX)},
+        {STA_ABSY, bnd(storeAAbsoluteY)},
+        {STA_INDX, bnd(storeAIndexedIndirect)},
+        {STA_INDY, bnd(storeAIndirectIndexed)},
         {STX_ZP, bnd(storeXZeroPage)},
         {STX_ZPY, bnd(storeXZeroPageY)},
         {STX_ABS, bnd(storeXAbsolute)},
@@ -172,6 +186,15 @@ public:
     void loadYZeroPageX();
     void loadYAbsolute();
     void loadYAbsoluteX();
+
+    // store A
+    void storeAZeroPage();
+    void storeAZeroPageX();
+    void storeAAbsolute();
+    void storeAAbsoluteX();
+    void storeAAbsoluteY();
+    void storeAIndexedIndirect();
+    void storeAIndirectIndexed();
 
     // store X
     void storeXZeroPage();
